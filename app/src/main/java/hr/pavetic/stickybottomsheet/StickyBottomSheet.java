@@ -29,9 +29,6 @@ public class StickyBottomSheet extends BottomSheetDialogFragment {
     private FragmentStickyBottomSheetBinding binding;
     private static StickyBottomSheet instance;
 
-    private ConstraintLayout.LayoutParams buttonLayoutParams;
-    private static int collapsedMargin;
-    private static int buttonHeight;
     private static int expandedHeight;
 
     public static StickyBottomSheet newInstance() {
@@ -59,34 +56,13 @@ public class StickyBottomSheet extends BottomSheetDialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
-
         dialog.setOnShowListener(dialogInterface -> setupRatio((BottomSheetDialog) dialogInterface));
-
-        ((BottomSheetDialog) dialog).getBehavior().addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                if(slideOffset > 0) //Sliding happens from 0 (Collapsed) to 1 (Expanded) - if so, calculate margins
-                    buttonLayoutParams.topMargin = (int) (((expandedHeight - buttonHeight) - collapsedMargin) * slideOffset + collapsedMargin);
-                else //If not sliding above expanded, set initial margin
-                    buttonLayoutParams.topMargin = collapsedMargin;
-                binding.sheetButton.setLayoutParams(buttonLayoutParams); //Set layout params to button (margin from top)
-            }
-        });
-
         return dialog;
     }
 
     private void setupRatio(BottomSheetDialog bottomSheetDialog) {
         FrameLayout bottomSheet = bottomSheetDialog.findViewById(R.id.design_bottom_sheet);
-        if(bottomSheet == null)
-            return;
-
-        //Retrieve button parameters
-        buttonLayoutParams = (ConstraintLayout.LayoutParams) binding.sheetButton.getLayoutParams();
+        if(bottomSheet == null) return;
 
         //Retrieve bottom sheet parameters
         BottomSheetBehavior.from(bottomSheet).setState(BottomSheetBehavior.STATE_COLLAPSED);
@@ -101,18 +77,6 @@ public class StickyBottomSheet extends BottomSheetDialogFragment {
         BottomSheetBehavior.from(bottomSheet).setSkipCollapsed(false);
         BottomSheetBehavior.from(bottomSheet).setPeekHeight(peekHeight);
         BottomSheetBehavior.from(bottomSheet).setHideable(true);
-
-        //Calculate button margin from top
-        buttonHeight = binding.sheetButton.getHeight() + 40; //How tall is the button + experimental distance from bottom (Change based on your view)
-        collapsedMargin = peekHeight - buttonHeight; //Button margin in bottom sheet collapsed state
-        buttonLayoutParams.topMargin = collapsedMargin;
-        binding.sheetButton.setLayoutParams(buttonLayoutParams);
-
-        //OPTIONAL - Setting up margins
-        ConstraintLayout.LayoutParams recyclerLayoutParams = (ConstraintLayout.LayoutParams) binding.sheetRecyclerview.getLayoutParams();
-        float k = (buttonHeight - 60) / (float) buttonHeight; //60 is amount that you want to be hidden behind button
-        recyclerLayoutParams.bottomMargin = (int) (k*buttonHeight); //Recyclerview bottom margin (from button)
-        binding.sheetRecyclerview.setLayoutParams(recyclerLayoutParams);
     }
 
     //Calculates height for 90% of fullscreen
